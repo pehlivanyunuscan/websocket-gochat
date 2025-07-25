@@ -11,7 +11,7 @@ type Hub struct {
 	Broadcast  chan types.Message
 	Register   chan *types.Client
 	Unregister chan *types.Client
-	mu         sync.Mutex
+	mu         sync.Mutex // Add this if you use a mutex for locking; adjust type as needed
 }
 
 func NewHub() *Hub {
@@ -22,7 +22,6 @@ func NewHub() *Hub {
 		Unregister: make(chan *types.Client),
 	}
 }
-
 func (h *Hub) Run() {
 	for {
 		select {
@@ -30,20 +29,20 @@ func (h *Hub) Run() {
 			h.mu.Lock()
 			h.Clients[client] = true
 			h.mu.Unlock()
-			log.Printf("Client %s connected", client.Username)
+			log.Printf("Client %s registered to hub", client.Username)
 
 		case client := <-h.Unregister: // Unregister a client
 			h.mu.Lock()
 			if _, ok := h.Clients[client]; ok { // Check if client is registered
 				delete(h.Clients, client)
 				close(client.Send)
-				log.Printf("Client %s disconnected", client.Username)
+				log.Printf("Client %s unregistered from hub", client.Username)
 			}
 			h.mu.Unlock()
 
 		case message := <-h.Broadcast: // Broadcast a message to all clients
+			log.Printf("Broadcasting message from %s : content: \"%s\"", message.Username, message.Content)
 			h.mu.Lock()
-			log.Printf("Broadcasting message from %s: %s", message.Username, message.Content)
 			for client := range h.Clients {
 				select {
 				case client.Send <- message:

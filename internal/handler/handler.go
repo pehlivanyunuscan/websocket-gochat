@@ -22,18 +22,12 @@ func ServeWs(h *hub.Hub, w http.ResponseWriter, r *http.Request) {
 		log.Println("Error upgrading connection:", err)
 		return
 	}
-	_, msg, err := conn.ReadMessage() // Read the initial message from the client
-	if err != nil {
-		log.Println("Error reading initial message:", err)
-		conn.Close()
-		return
-	}
+
 	c := &types.Client{
 		Conn:     conn,
 		Send:     make(chan types.Message, 256), // Buffered channel for sending messages
-		Username: string(msg),                   // Use the initial message as the username
+		Username: "",                            // Use the initial message as the username
 	}
-	h.Register <- c // Register the new client in the hub
 
 	go client.ReadMessages(c, h) // Start reading messages from the client
 	go client.WriteMessages(c)   // Start writing messages to the client

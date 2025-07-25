@@ -29,6 +29,41 @@ func ReadMessages(c *types.Client, h *hub.Hub) {
 		c.Conn.SetReadDeadline(time.Now().Add(60 * time.Second)) // Reset read deadline on pong
 		return nil
 	})
+
+	var initialMsg types.Message
+	err := c.Conn.ReadJSON(&initialMsg)
+	if err != nil {
+		log.Printf("Error reading initial message: %v", err)
+		return
+	}
+
+	// Check if username is provided in the first message
+	if initialMsg.Username == "" {
+		log.Println("Username not provided in initial message")
+		// Send error message to client
+		c.Conn.WriteJSON(types.Message{
+			Username: "System",
+			Content:  "Error: Username is required in first message",
+		})
+		return
+	}
+
+	c.Username = initialMsg.Username
+	log.Printf("Client %s connected", c.Username)
+
+	h.Register <- c
+
+	// Broadcast the initial message if it has content
+	if initialMsg.Content != "" {
+		h.Broadcast <- initialMsg
+	}
+
+	welcomeMsg := types.Message{
+		Username: "System",
+		Content:  c.Username + " joined the chat",
+	}
+	h.Broadcast <- welcomeMsg
+
 	for {
 		var msg types.Message
 		err := c.Conn.ReadJSON(&msg)
@@ -38,12 +73,23 @@ func ReadMessages(c *types.Client, h *hub.Hub) {
 			}
 			break
 		}
-		msg.Username = c.Username // Set the username for the message
-		h.Broadcast <- msg        // Broadcast the message to all clients
+		// For subsequent messages, only content is required
+		// Username is automatically set from the established client
+		if msg.Content != "" {
+			msg.Username = c.Username
+			h.Broadcast <- msg
+		}
+	}
+	// Send leave message when client disconnects
+	if c.Username != "" {
+		leaveMsg := types.Message{
+			Username: "System",
+			Content:  c.Username + " left the chat",
+		}
+		h.Broadcast <- leaveMsg
 	}
 }
 
-// WriteMessages writes messages to the WebSocket connection.
 func WriteMessages(c *types.Client) {
 	ticker := time.NewTicker(54 * time.Second) // Send ping messages to keep the connection alive
 	defer func() {
