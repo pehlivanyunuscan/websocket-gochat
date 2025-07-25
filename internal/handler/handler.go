@@ -3,10 +3,9 @@ package handler
 import (
 	"log"
 	"net/http"
-	"websocket-gochat/message"
-
 	"websocket-gochat/internal/client"
 	"websocket-gochat/internal/hub"
+	"websocket-gochat/internal/types"
 
 	"github.com/gorilla/websocket"
 )
@@ -29,14 +28,13 @@ func ServeWs(h *hub.Hub, w http.ResponseWriter, r *http.Request) {
 		conn.Close()
 		return
 	}
-	username := string(msg) // Use the initial message as the username
-	c := &client.Client{
+	c := &types.Client{
 		Conn:     conn,
-		Send:     make(chan message.Message, 256), // Buffered channel for sending messages
-		Username: username,
+		Send:     make(chan types.Message, 256), // Buffered channel for sending messages
+		Username: string(msg),                   // Use the initial message as the username
 	}
 	h.Register <- c // Register the new client in the hub
 
-	go c.ReadMessages(h) // Start reading messages from the client
-	go c.WriteMessages() // Start writing messages to the client
+	go client.ReadMessages(c, h) // Start reading messages from the client
+	go client.WriteMessages(c)   // Start writing messages to the client
 }
