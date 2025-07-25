@@ -1,24 +1,26 @@
-package internal
+package hub
 
 import (
 	"sync"
 	"websocket-gochat/message"
+
+	"websocket-gochat/internal/client"
 )
 
 type Hub struct {
-	Clients    map[*Client]bool
+	Clients    map[*client.Client]bool
 	Broadcast  chan message.Message
-	Register   chan *Client
-	Unregister chan *Client
+	Register   chan *client.Client
+	Unregister chan *client.Client
 	mu         sync.Mutex
 }
 
 func NewHub() *Hub {
 	return &Hub{
-		Clients:    make(map[*Client]bool),
+		Clients:    make(map[*client.Client]bool),
 		Broadcast:  make(chan message.Message),
-		Register:   make(chan *Client),
-		Unregister: make(chan *Client),
+		Register:   make(chan *client.Client),
+		Unregister: make(chan *client.Client),
 	}
 }
 func (h *Hub) Run() {

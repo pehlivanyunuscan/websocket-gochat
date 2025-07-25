@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"websocket-gochat/message"
 
-	"websocket-gochat/client"
-	"websocket-gochat/hub"
+	"websocket-gochat/internal/client"
+	"websocket-gochat/internal/hub"
 
 	"github.com/gorilla/websocket"
 )
@@ -17,7 +17,7 @@ var upgrader = websocket.Upgrader{ // Upgrade HTTP connection to WebSocket
 	},
 }
 
-func serveWs(h *hub.Hub, w http.ResponseWriter, r *http.Request) {
+func ServeWs(h *hub.Hub, w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil) // Upgrade the HTTP connection to a WebSocket connection
 	if err != nil {
 		log.Println("Error upgrading connection:", err)

@@ -1,4 +1,4 @@
-package websocketgochat
+package main
 
 import (
 	"context"
@@ -8,6 +8,8 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+	"websocket-gochat/internal/handler"
+	"websocket-gochat/internal/hub"
 )
 
 func main() {
@@ -15,7 +17,7 @@ func main() {
 	go h.Run() // Start the hub to handle client connections
 
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
-		serveWs(h, w, r) // Handle WebSocket connections
+		handler.ServeWs(h, w, r) // Handle WebSocket connections
 	})
 	srv := &http.Server{
 		Addr: ":8080", // Set the server address

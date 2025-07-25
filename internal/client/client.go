@@ -1,9 +1,9 @@
-package internal
+package client
 
 import (
 	"log"
 	"time"
-	"websocket-gochat/internal"
+	"websocket-gochat/internal/hub"
 	"websocket-gochat/message"
 
 	"github.com/gorilla/websocket"
@@ -15,7 +15,7 @@ type Client struct {
 	Username string
 }
 
-func (c *Client) ReadMessages(h *internal.Hub) {
+func (c *Client) ReadMessages(h *hub.Hub) {
 	defer func() {
 		h.Unregister <- c
 		c.Conn.Close()
@@ -35,5 +35,32 @@ func (c *Client) ReadMessages(h *internal.Hub) {
 		}
 		msg.Username = c.Username // Set the username for the message
 		h.Broadcast <- msg        // Broadcast the message to all clients
+	}
+}
+
+func (c *Client) WriteMessages() {
+	ticker := time.NewTicker(60 * time.Second) // Send ping messages to keep the connection alive
+	defer func() {
+		ticker.Stop()
+		c.Conn.Close()
+	}()
+	for {
+		select {
+		case msg, ok := <-c.Send:
+			if !ok {
+				c.Conn.WriteMessage(websocket.CloseMessage, []byte{})
+				return
+			}
+			if err := c.Conn.WriteJSON(msg); err != nil {
+				log.Println("Error writing JSON:", err)
+				return
+			}
+
+		case <-ticker.C:
+			if err := c.Conn.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
+				log.Println("Error sending ping:", err)
+				return
+			}
+		}
 	}
 }
