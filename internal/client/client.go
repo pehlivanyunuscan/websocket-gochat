@@ -23,9 +23,9 @@ func ReadMessages(c *types.Client, h *hub.Hub) {
 		c.Conn.Close()
 	}()
 
-	c.Conn.SetReadLimit(512)                                 // Set a read limit for incoming messages
-	c.Conn.SetReadDeadline(time.Now().Add(60 * time.Second)) // Set a read deadline
-	c.Conn.SetPongHandler(func(string) error {               // Set a pong handler to reset the read deadline
+	c.Conn.SetReadLimit(512)                                 // Set a read limit for incoming messages (Dos protection)
+	c.Conn.SetReadDeadline(time.Now().Add(60 * time.Second)) // Set a read deadline(60 saniye boyunca mesaj yoksa timeout))
+	c.Conn.SetPongHandler(func(string) error {               // Ping-pong keepalive mechanism
 		c.Conn.SetReadDeadline(time.Now().Add(60 * time.Second)) // Reset read deadline on pong
 		return nil
 	})
