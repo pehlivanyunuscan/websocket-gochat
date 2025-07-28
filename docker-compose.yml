@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  websocket-gochat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: websocket-gochat-app
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    networks:
+      - gochat-network
+
+networks:
+  gochat-network:
+    driver: bridge
