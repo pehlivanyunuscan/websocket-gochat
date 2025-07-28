@@ -14,6 +14,7 @@ A real-time chat application built with Go and WebSockets using Gorilla WebSocke
 - **Connection management** - Ping/pong keepalive mechanism
 - **Error handling** - Comprehensive error management
 - **Modular design** - Clean separation of concerns
+- **Dockerized deployment** - Portable and reproducible environment
 
 ## 🏗️ Architecture
 
