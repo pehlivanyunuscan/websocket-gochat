@@ -40,6 +40,7 @@ A real-time chat application built with Go and WebSockets using Gorilla WebSocke
 ## 📋 Prerequisites
 
 - Go 1.24.4 or higher
+- Docker & Docker Compose (for containerized deployment)
 - Git (for cloning)
 - WebSocket client for testing (wscat, browser, etc.)
 
@@ -51,26 +52,43 @@ git clone <https://github.com/pehlivanyunuscan/websocket-gochat>
 cd websocket-gochat
 ```
 
-### 2. Install dependencies
+### 2. Dockerized Deployment
+
+#### Build and Run with Docker Compose
 ```bash
-go mod download
-go mod tidy
+docker-compose up --build
+```
+or in detached mode:
+```bash
+docker-compose up --build -d
 ```
 
-### 3. Run the application
+#### Using the provided script
 ```bash
-go run main.go
+chmod +x start-docker.sh
+./start-docker.sh
 ```
 
-The server will start on `http://localhost:8080`
+#### Stopping and cleaning up
+```bash
+sudo docker-compose down
+```
+## 🐳 Docker Details
+
+- **Multi-stage build**: Uses Go Alpine for build, then copies the binary to a minimal `scratch` image for production.
+- **Minimal image size**: Only the compiled binary and certificates are included.
+- **Port mapping**: Exposes port `8080` by default.
+- **Docker Compose**: Defines the service, network, and restart policy for easy development and deployment.
+
 
 ## 🎯 Usage
 
 ### Starting the Server
 
 ```bash
-go run main.go
-# Output: Starting WebSocket server on :8080
+docker-compose up --build
+# or
+./start-docker.sh
 ```
 
 ### Connecting with wscat
@@ -151,6 +169,9 @@ websocket-gochat/
 ├── main.go                 # Application entry point
 ├── go.mod                  # Go module definition
 ├── go.sum                  # Dependency checksums
+├── Dockerfile              # Multi-stage Docker build file
+├── docker-compose.yml      # Docker Compose configuration
+├── start-docker.sh         # Script for Docker deployment
 ├── internal/               # Internal packages
 │   ├── types/
 │   │   └── types.go       # Data structures (Message, Client)
