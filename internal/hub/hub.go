@@ -11,7 +11,7 @@ type Hub struct {
 	Broadcast  chan types.Message
 	Register   chan *types.Client
 	Unregister chan *types.Client
-	mu         sync.Mutex // Add this if you use a mutex for locking; adjust type as needed
+	mu         sync.Mutex
 }
 
 func NewHub() *Hub {
